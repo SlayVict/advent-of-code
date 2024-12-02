@@ -31,8 +31,8 @@ fn main() {
 
     let result: usize = left
         .iter()
-        .filter(|l| **l >= min && **l <= max)
-        .map(|l| *l * table[*l - min])
+        .filter(|&&l| l >= min && l <= max)
+        .map(|&l| l * table[l - min])
         .sum();
 
     println!("result: {result}");

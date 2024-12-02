@@ -13,44 +13,18 @@ struct Args {
     max_change: u32,
 }
 
-#[derive(PartialEq)]
-enum Trend {
-    Increase,
-    Decrease,
-    Chaos,
-}
+fn is_safe_report(report: &[u32], min_change: u32, max_change: u32) -> bool {
+    let mut up = true;
+    let mut down = true;
+    let mut range = true;
 
-fn get_trend(arr: &[u32]) -> Trend {
-    let mut trend: Option<Trend> = None;
-    for i in 1..arr.len() {
-        if arr[i] > arr[i - 1] {
-            if trend == Some(Trend::Decrease) {
-                return Trend::Chaos;
-            }
-            trend = Some(Trend::Increase);
-        } else if arr[i] < arr[i - 1] {
-            if trend == Some(Trend::Increase) {
-                return Trend::Chaos;
-            }
-            trend = Some(Trend::Decrease);
-        }
+    for w in report.windows(2) {
+        up &= w[1] > w[0];
+        down &= w[1] < w[0];
+        range &= (min_change..=max_change).contains(&w[1].abs_diff(w[0]));
     }
-    trend.unwrap()
-}
 
-fn is_safe_report(report: &[u32], min_cahnge: u32, max_change: u32) -> bool {
-    let trend = get_trend(report);
-    if trend == Trend::Chaos {
-        return false;
-    }
-    for i in 1..report.len() {
-        if report[i].abs_diff(report[i - 1]) > max_change
-            || report[i].abs_diff(report[i - 1]) < min_cahnge
-        {
-            return false;
-        }
-    }
-    true
+    (up ^ down) && range
 }
 
 fn main() {
