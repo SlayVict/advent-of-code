@@ -7,72 +7,58 @@ use clap::Parser;
 struct Args {
     #[arg(short, long)]
     input: String,
-    #[arg(long)]
-    min_change: u32,
-    #[arg(short, long)]
-    max_change: u32,
 }
 
-#[derive(PartialEq)]
-enum Trend {
-    Increase,
-    Decrease,
-}
-
-fn get_trend(level1: u32, level2: u32) -> Trend {
-    if level1 > level2 {
-        Trend::Decrease
+fn delta(l: i32, r: i32) -> i32 {
+    let delta = r - l;
+    if (1..=3).contains(&delta.abs()) {
+        delta.signum()
     } else {
-        Trend::Increase
+        0
     }
 }
 
-fn _is_safe_helper(report: &[u32], min_change: u32, max_change: u32, skip: Option<usize>) -> bool {
-    let new_report: Vec<u32> = if let Some(skip) = skip {
-        report
-            .iter()
-            .enumerate()
-            .filter(|&(i, _)| i != skip)
-            .map(|(_, &x)| x)
-            .collect()
-    } else {
-        report.into()
-    };
+fn score(levels: &[i32]) -> i32 {
+    levels.windows(2).map(|w| delta(w[0], w[1])).sum()
+}
 
-    let trend = get_trend(new_report[0], new_report[1]);
+fn is_safe(levels: &[i32]) -> bool {
+    let score = score(levels);
+    let size = levels.len() as i32;
 
-    for i in 1..new_report.len() {
-        if !((min_change..=max_change).contains(&new_report[i - 1].abs_diff(new_report[i]))
-            && trend == get_trend(new_report[i - 1], new_report[i]))
-        {
-            if let Some(_) = skip {
-                return false;
-            }
-            return _is_safe_helper(report, min_change, max_change, Some(i.saturating_sub(2)))
-                || _is_safe_helper(report, min_change, max_change, Some(i.saturating_sub(1)))
-                || _is_safe_helper(report, min_change, max_change, Some(i));
+    if score.abs() == size - 1 {
+        return true;
+    }
+
+    for i in 0..size as usize {
+        let mut score = score;
+        if i > 0 {
+            score -= delta(levels[i - 1], levels[i]);
+        }
+        if i < size as usize - 1 {
+            score -= delta(levels[i], levels[i + 1]);
+        }
+        if i > 0 && i < size as usize - 1 {
+            score += delta(levels[i - 1], levels[i + 1]);
+        }
+        if score.abs() == size - 2 {
+            return true;
         }
     }
-    true
-}
 
-fn is_safe_report(report: &[u32], min_change: u32, max_change: u32) -> bool {
-    _is_safe_helper(report, min_change, max_change, None)
+    false
 }
 
 fn main() {
     let args = Args::parse();
-    let mut reports: Vec<Vec<u32>> = vec![];
+    let mut reports: Vec<Vec<i32>> = vec![];
 
     for line in fs::read_to_string(&args.input).unwrap().lines() {
         let split = line.split_whitespace().collect::<Vec<&str>>();
-        reports.push(split.iter().map(|s| s.parse::<u32>().unwrap()).collect());
+        reports.push(split.iter().map(|s| s.parse::<i32>().unwrap()).collect());
     }
 
-    let result = reports
-        .iter()
-        .filter(|report| is_safe_report(report, args.min_change, args.max_change))
-        .count();
+    let result = reports.iter().filter(|report| is_safe(report)).count();
 
     println!("result: {result}");
 }
