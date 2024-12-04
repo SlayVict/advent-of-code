@@ -14,7 +14,7 @@ fn solve(input: &Vec<Vec<char>>, leters: &[char], map: &Vec<Vec<(i32, i32)>>) ->
                             .collect();
                         if shift.iter().any(|(y, x)| {
                             !(0..input.len() as i32).contains(&y)
-                                || !(0..arr.len() as i32).contains(&x)
+                                || !(0..input[*y as usize].len() as i32).contains(&x)
                         }) {
                             return false;
                         }
