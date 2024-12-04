@@ -6,6 +6,7 @@ pub enum Answer {
     Number(u64),
     Float(f64),
     Unimplemented,
+    InProgress,
 }
 
 impl Display for Answer {
@@ -15,6 +16,7 @@ impl Display for Answer {
             Answer::Number(n) => write!(f, "{n}"),
             Answer::Float(n) => write!(f, "{n}"),
             Answer::Unimplemented => write!(f, "Unimplemented"),
+            Answer::InProgress => write!(f, "In Progress"),
         }
     }
 }
