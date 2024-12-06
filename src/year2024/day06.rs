@@ -1,4 +1,9 @@
-use std::ops::{Add, AddAssign};
+use std::{
+    ops::{Add, AddAssign},
+    process::Command,
+    thread,
+    time::Duration,
+};
 
 use rayon::prelude::*;
 
@@ -38,6 +43,17 @@ impl From<char> for Cell {
     }
 }
 
+impl From<Cell> for char {
+    fn from(value: Cell) -> Self {
+        match value {
+            Cell::Wall => '#',
+            Cell::Empty => '.',
+            Cell::Visited(_) => 'X',
+            Cell::Player(direction) => direction.into(),
+        }
+    }
+}
+
 impl From<char> for Direction {
     fn from(c: char) -> Self {
         match c {
@@ -46,6 +62,17 @@ impl From<char> for Direction {
             'v' => Self::Down,
             '<' => Self::Left,
             _ => panic!("Unkown direction character {c}"),
+        }
+    }
+}
+
+impl From<Direction> for char {
+    fn from(value: Direction) -> Self {
+        match value {
+            Direction::Up => '^',
+            Direction::Right => '>',
+            Direction::Down => 'v',
+            Direction::Left => '<',
         }
     }
 }
@@ -172,9 +199,35 @@ impl From<Direction> for Point {
     }
 }
 
+// fn clear_console() {
+//     if cfg!(target_os = "windows") {
+//         Command::new("cmd").args(&["/c", "cls"]).status().unwrap();
+//     } else {
+//         Command::new("clear").status().unwrap();
+//     }
+// }
+//
+// fn move_to_the_top_left() {
+//     print!("\x1B[1;1H");
+// }
+//
+// fn displaygrid(grid: &Grid) {
+//     let gridStr: String = grid
+//         .iter()
+//         .map(|line| line.iter().map(|&c| char::from(c)).collect::<String>())
+//         .collect::<Vec<_>>()
+//         .join("\n");
+//     println!("{gridStr}\n");
+// }
+
 fn calculate_default_path(grid: &Grid) -> Grid {
     let mut grid = grid.copy();
     let mut player_position = grid.player_position().unwrap();
+
+    // let delay = Duration::from_millis(10);
+    // clear_console();
+    // displaygrid(&grid);
+    // thread::sleep(delay);
 
     while let Some(Cell::Player(direction)) = grid.at(player_position) {
         let next_position = player_position + direction.into();
@@ -197,6 +250,10 @@ fn calculate_default_path(grid: &Grid) -> Grid {
                 grid.set(player_position, Cell::Visited(direction.into()));
             }
         }
+
+        // move_to_the_top_left();
+        // displaygrid(&grid);
+        // thread::sleep(delay);
     }
     grid
 }

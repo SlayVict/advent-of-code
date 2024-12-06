@@ -1,5 +1,6 @@
 use aoc::utils::parse::*;
 use aoc::*;
+use std::env::args;
 use std::{
     fs::read_to_string,
     path::{Path, PathBuf},
@@ -20,6 +21,7 @@ macro_rules! solution {
 
             let part1 = part1(&data);
             let part2 = part2(&data);
+            // let part2 = 0.into();
 
             (part1, part2)
         };
