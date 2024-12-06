@@ -1,9 +1,4 @@
-use std::{collections::HashMap, iter::empty};
-
 use crate::utils::{answers::Answer, iters::ChunkOps, parse::*};
-
-// type Graph = HashMap<u32, Vec<u32>>;
-// type UpdateOrders = Vec<Vec<u32>>;
 
 fn is_allowed_line(line: &[u32], after: &[[bool; 100]; 100]) -> bool {
     line.iter().enumerate().all(|(i, &page)| {
