@@ -1,5 +1,7 @@
 use std::ops::{Add, AddAssign};
 
+use rayon::prelude::*;
+
 use crate::utils::answers::Answer;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -199,39 +201,38 @@ fn calculate_default_path(grid: &Grid) -> Grid {
     grid
 }
 
-pub fn loop_detection(grid: Grid) -> bool {
-    let mut grid = grid.copy();
-    let mut player_position = grid.player_position();
-    let Some(Cell::Player(mut player_direction)) = grid.at(player_position.unwrap()) else {
-        panic!()
-    };
-    grid.set(player_position.unwrap(), Cell::Empty);
+#[derive(Clone)]
+struct Player {
+    position: Option<Point>,
+    direction: Direction,
+}
 
-    while let Some(position) = player_position {
-        let next_position = position + player_direction.into();
+pub fn loop_detection(grid: &mut Grid, player: &mut Player) -> bool {
+    while let Some(position) = player.position {
+        let next_position = position + player.direction.into();
         match grid.at(next_position) {
             Some(Cell::Empty) => {
-                grid.set(position, Cell::Visited(player_direction.into()));
-                player_position = Some(next_position);
+                grid.set(position, Cell::Visited(player.direction.into()));
+                player.position = Some(next_position);
             }
             Some(Cell::Visited(_)) => {
                 let mut d: u8 = 0;
                 if let Cell::Visited(dddd) = grid.at(position).unwrap() {
                     d = dddd;
                 };
-                if d & (u8::from(player_direction)) != 0 {
+                if d & (u8::from(player.direction)) != 0 {
                     return true;
                 }
-                grid.set(position, Cell::Visited(d | (u8::from(player_direction))));
-                player_position = Some(next_position);
+                grid.set(position, Cell::Visited(d | (u8::from(player.direction))));
+                player.position = Some(next_position);
             }
             Some(Cell::Wall) => {
-                let new_direction = player_direction.rotate_clockwise();
-                player_direction = new_direction;
+                let new_direction = player.direction.rotate_clockwise();
+                player.direction = new_direction;
             }
             _ => {
-                grid.set(position, Cell::Visited(player_direction.into()));
-                player_position = None;
+                grid.set(position, Cell::Visited(player.direction.into()));
+                player.position = None;
             }
         }
     }
@@ -248,6 +249,16 @@ pub fn part1(input: &str) -> Answer {
 pub fn part2(input: &str) -> Answer {
     let grid = parse(input);
     let player_position = grid.player_position().unwrap();
+    let player_cell = grid.at(player_position).unwrap();
+    let player_direction = match player_cell {
+        Cell::Player(direction) => direction,
+        _ => panic!(),
+    };
+
+    let player = Player {
+        position: Some(player_position),
+        direction: player_direction,
+    };
 
     let solved = calculate_default_path(&grid);
     let solved_positions = solved.positions(|c| matches!(c, Cell::Visited(_)));
@@ -257,11 +268,11 @@ pub fn part2(input: &str) -> Answer {
         .collect();
 
     solved_positions
-        .iter()
+        .par_iter()
         .map(|&p| {
             let mut grid = grid.copy();
             grid.set(*p, Cell::Wall);
-            loop_detection(grid)
+            loop_detection(&mut grid, &mut player.clone())
         })
         .filter(|&b| b)
         .count()
