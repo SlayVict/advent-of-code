@@ -1,6 +1,5 @@
 use aoc::utils::parse::*;
 use aoc::*;
-use std::env::args;
 use std::{
     fs::read_to_string,
     path::{Path, PathBuf},

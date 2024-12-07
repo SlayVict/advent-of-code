@@ -1,8 +1,8 @@
 use std::{
     ops::{Add, AddAssign},
-    process::Command,
-    thread,
-    time::Duration,
+    // process::Command,
+    // thread,
+    // time::Duration,
 };
 
 use rayon::prelude::*;
@@ -259,7 +259,7 @@ fn calculate_default_path(grid: &Grid) -> Grid {
 }
 
 #[derive(Clone)]
-struct Player {
+pub struct Player {
     position: Option<Point>,
     direction: Direction,
 }
