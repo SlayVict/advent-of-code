@@ -158,24 +158,6 @@ impl GridOps for Grid {
     }
 }
 
-impl AddAssign for Point {
-    fn add_assign(&mut self, other: Point) {
-        self.x += other.x;
-        self.y += other.y;
-    }
-}
-
-impl Add for Point {
-    type Output = Point;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Self {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
-    }
-}
-
 impl From<Direction> for Point {
     fn from(d: Direction) -> Self {
         match d {
