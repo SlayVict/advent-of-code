@@ -1,6 +1,6 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
-use crate::utils::{answers::Answer, parse, point::Point};
+use crate::utils::{answers::Answer, point::Point};
 
 struct Dimention {
     width: i32,
@@ -22,11 +22,41 @@ impl Dimention {
 pub fn part1(input: &str) -> Answer {
     let (map, dm) = parse(input);
 
-    Answer::InProgress
+    let mut antinodes = HashSet::new();
+
+    for (_, antenas) in map {
+        for (i, &antena1) in antenas.iter().enumerate() {
+            for &antena2 in antenas[..i].iter().chain(antenas[i + 1..].iter()) {
+                let dif = antena2 - antena1;
+                let antinode = antena2 + dif;
+
+                if dm.contain(antinode) {
+                    antinodes.insert(antinode);
+                }
+            }
+        }
+    }
+    antinodes.len().into()
 }
 
 pub fn part2(input: &str) -> Answer {
-    Answer::InProgress
+    let (map, dm) = parse(input);
+
+    let mut antinodes = HashSet::new();
+
+    for (_, antenas) in map {
+        for (i, &antena1) in antenas.iter().enumerate() {
+            for &antena2 in antenas[..i].iter().chain(antenas[i + 1..].iter()) {
+                let dif = antena2 - antena1;
+                let mut antinode = antena2;
+                while dm.contain(antinode) {
+                    antinodes.insert(antinode);
+                    antinode = antinode + dif;
+                }
+            }
+        }
+    }
+    antinodes.len().into()
 }
 
 fn parse(input: &str) -> (HashMap<char, Vec<Point>>, Dimention) {
