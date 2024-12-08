@@ -7,7 +7,7 @@ use std::{
 
 use rayon::prelude::*;
 
-use crate::utils::answers::Answer;
+use crate::utils::{answers::Answer, point::Point};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Cell {
@@ -23,12 +23,6 @@ pub enum Direction {
     Right,
     Down,
     Left,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct Point {
-    x: i32,
-    y: i32,
 }
 
 impl From<char> for Cell {
@@ -96,12 +90,6 @@ impl From<Direction> for u8 {
             Direction::Down => 0b0010,
             Direction::Left => 0b0001,
         }
-    }
-}
-
-impl Point {
-    fn new(x: i32, y: i32) -> Self {
-        Self { x, y }
     }
 }
 
