@@ -124,6 +124,9 @@ impl Free {
     }
 
     fn width(&self) -> u64 {
+        if self.end < self.start {
+            return 0;
+        }
         self.end - self.start + 1
     }
 }
@@ -143,7 +146,7 @@ impl PartialOrd for Free {
 #[derive(Debug)]
 struct Drive {
     files: Vec<File>,
-    free: [BinaryHeap<Reverse<Free>>; 9],
+    free: Vec<Free>,
 }
 
 fn display_files(files: &Vec<File>) {
@@ -172,54 +175,40 @@ pub fn part2(input: &str) -> Answer {
     /* target 6347435485773 */
     let mut drive = parse(input);
 
+    let mut last_free = [Some(0); 9];
+
     // display_files(&drive.files);
 
     for i in (0..drive.files.len()).rev() {
-        // println!("{:?}", drive.free);
-        let min = drive
-            .free
-            .iter()
-            .map(|heap| heap.peek())
-            .filter(|peek| peek.is_some())
-            .map(|peek| peek.unwrap().0)
-            .min();
-
-        if let None = min {
-            break;
-        }
-
         let mut file = drive.files[i];
         let width = file.width();
 
-        if file.start < min.unwrap().start {
-            // println!("break bekause {} < {}", file.start, min.unwrap().start);
-            continue;
-        }
+        let from = last_free[width as usize - 1];
+        let Some(from) = from else { continue };
+        let free_index = (from..drive.free.len())
+            .filter_map(|index| {
+                let free = drive.free[index];
+                let free_width = free.width();
+                if free_width >= width {
+                    Some(index)
+                } else {
+                    None
+                }
+            })
+            .next();
 
-        let free_space = drive
-            .free
-            .iter()
-            .enumerate()
-            .skip(width as usize - 1)
-            .map(|(i, heap)| (i + 1, heap.peek()))
-            .filter(|(_, peek)| peek.is_some())
-            .map(|(i, peek)| (i, peek.unwrap()))
-            .min_by_key(|(_, &peek)| (peek).0.start);
+        last_free[width as usize - 1] = free_index;
 
-        if let Some((free_width, _)) = free_space {
-            let id = file.id;
-            let free = drive.free[free_width - 1].pop().unwrap().0;
+        if let Some(index) = free_index {
+            let mut free = drive.free[index];
             if free.start > file.start {
                 continue;
             }
-            // println!("{id}: {width} {free:?}\t\t {free_width}");
             file.start = free.start;
             file.end = file.start + width - 1;
-            if width < (free_width as u64) {
-                let new_free = Free::new(file.end + 1, free.end).unwrap();
-                drive.free[new_free.width() as usize - 1].push(Reverse(new_free));
-            }
             drive.files[i] = file;
+            free.start = file.end + 1;
+            drive.free[index] = free;
         }
     }
 
@@ -233,17 +222,7 @@ pub fn part2(input: &str) -> Answer {
 }
 
 fn parse(input: &str) -> Drive {
-    let mut free = [
-        BinaryHeap::new(),
-        BinaryHeap::new(),
-        BinaryHeap::new(),
-        BinaryHeap::new(),
-        BinaryHeap::new(),
-        BinaryHeap::new(),
-        BinaryHeap::new(),
-        BinaryHeap::new(),
-        BinaryHeap::new(),
-    ];
+    let mut free = Vec::new();
     let mut files = Vec::new();
     let iter = input
         .lines()
@@ -258,46 +237,11 @@ fn parse(input: &str) -> Drive {
             if i % 2 == 0 {
                 files.push(File::new(index, index + width as u64 - 1, i as u64 / 2).unwrap());
             } else {
-                free[width as usize - 1]
-                    .push(Reverse(Free::new(index, index + width as u64 - 1).unwrap()));
+                free.push(Free::new(index, index + width as u64 - 1).unwrap());
             }
         }
         index += width as u64;
     }
 
     Drive { files, free }
-}
-
-#[cfg(test)]
-mod tests {
-
-    use std::cmp::Reverse;
-
-    use super::*;
-
-    const INPUT: &str = "2333133121414131402";
-    #[test]
-    fn test_heap() {
-        let mut heap = BinaryHeap::new();
-        heap.push(Reverse(Free::new(1, 5).unwrap()));
-        heap.push(Reverse(Free::new(10, 15).unwrap()));
-        heap.push(Reverse(Free::new(5, 8).unwrap()));
-
-        assert_eq!(*heap.peek().unwrap(), Reverse(Free::new(1, 5).unwrap()));
-    }
-
-    #[test]
-    fn test_min_viable() {
-        let drive = parse(&INPUT);
-
-        let min = drive
-            .free
-            .iter()
-            .map(|heap| heap.peek())
-            .filter(|peek| peek.is_some())
-            .map(|peek| peek.unwrap().0)
-            .min();
-        let (Some(min)) = min else { panic!() };
-        assert_eq!(min, Free::new(2, 4).unwrap())
-    }
 }
