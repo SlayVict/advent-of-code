@@ -1,5 +1,6 @@
 use aoc::utils::parse::*;
 use aoc::*;
+use std::time::{Duration, Instant};
 use std::{
     fs::read_to_string,
     path::{Path, PathBuf},
@@ -18,11 +19,15 @@ macro_rules! solution {
         let wrapper = |data: String| {
             use $year::$day::*;
 
+            let instant = Instant::now();
             let part1 = part1(&data);
+            let part1time = instant.elapsed();
+            let instant = Instant::now();
             let part2 = part2(&data);
+            let part2time = instant.elapsed();
             // let part2 = 0.into();
 
-            (part1, part2)
+            (part1, part2, part1time, part2time)
         };
 
         Solution {
@@ -56,10 +61,10 @@ fn main() {
     {
         let data = read_to_string(path).unwrap();
 
-        let (part1, part2) = wrapper(data);
+        let (part1, part2, part1time, part2time) = wrapper(data);
         println!("{}/{}", year, day);
-        println!("part1: {}", part1);
-        println!("part2: {}", part2);
+        println!("part1: {} ({}ms)", part1, part1time.as_millis());
+        println!("part2: {} ({}ms)", part2, part2time.as_millis());
         println!();
     }
 }
@@ -68,5 +73,5 @@ struct Solution {
     year: u32,
     day: u32,
     path: PathBuf,
-    wrapper: fn(String) -> (Answer, Answer),
+    wrapper: fn(String) -> (Answer, Answer, Duration, Duration),
 }
