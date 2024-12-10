@@ -184,17 +184,17 @@ pub fn part2(input: &str) -> Answer {
             .map(|peek| peek.unwrap().0)
             .min();
 
-        // if let None = min {
-        //     break;
-        // }
+        if let None = min {
+            break;
+        }
 
         let mut file = drive.files[i];
         let width = file.width();
 
-        // if file.start < min.unwrap().start {
-        //     // println!("break bekause {} < {}", file.start, min.unwrap().start);
-        //     continue;
-        // }
+        if file.start < min.unwrap().start {
+            // println!("break bekause {} < {}", file.start, min.unwrap().start);
+            continue;
+        }
 
         let free_space = drive
             .free
