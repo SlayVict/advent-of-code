@@ -1,3 +1,4 @@
+#![feature(duration_millis_float)]
 use aoc::utils::parse::*;
 use aoc::*;
 use std::time::{Duration, Instant};
@@ -64,8 +65,8 @@ fn main() {
 
         let (part1, part2, part1time, part2time) = wrapper(data);
         println!("{}/{}", year, day);
-        println!("part1: {} ({}ms)", part1, part1time.as_millis());
-        println!("part2: {} ({}ms)", part2, part2time.as_millis());
+        println!("part1: {} ({}ms)", part1, part1time.as_millis_f32());
+        println!("part2: {} ({}ms)", part2, part2time.as_millis_f32());
         println!();
     }
 }
