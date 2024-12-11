@@ -1,5 +1,3 @@
-use std::{cmp::Reverse, collections::BinaryHeap, error::Error};
-
 use crate::utils::answers::Answer;
 
 pub fn part1(input: &str) -> Answer {
@@ -17,8 +15,6 @@ pub fn part1(input: &str) -> Answer {
     let mut right: u64 = (input.len() - 1) as u64 / 2;
     let mut right_index = input.len() - 2 + input.len() % 2;
     let mut sum: u64 = 0;
-
-    let mut accounted = 0;
 
     while left_index <= right_index {
         if left_index % 2 == 0 {
@@ -52,38 +48,8 @@ pub fn part1(input: &str) -> Answer {
     sum.into()
 }
 
-#[derive(PartialEq, Clone, Copy)]
-enum DriveSpace {
-    File((u32, u32)), // (width, id)
-    Free(u32),        // width
-}
-
-impl DriveSpace {
-    fn width(&self) -> u32 {
-        match *self {
-            DriveSpace::File((width, _)) => width,
-            DriveSpace::Free(width) => width,
-        }
-    }
-}
-
-fn print_drive(input: &Vec<DriveSpace>) {
-    for space in input {
-        let c = match space {
-            DriveSpace::File((_, id)) => format!("{id}").chars().next().unwrap(),
-            DriveSpace::Free(_) => '.',
-        };
-        for _ in 0..space.width() {
-            print!("{c} ");
-        }
-    }
-    println!()
-}
-
 #[derive(Debug, Clone)]
 struct SizeError;
-
-// impl Error for SizeError {}
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 struct File {
@@ -147,28 +113,6 @@ impl PartialOrd for Free {
 struct Drive {
     files: Vec<File>,
     free: Vec<Free>,
-}
-
-fn display_files(files: &Vec<File>) {
-    let mut files = files.clone();
-    files.sort_by_key(|&f| f.start);
-    let mut file_index = 0usize;
-    let mut index = 0usize;
-
-    let mut id = 0;
-    while file_index < files.len() {
-        if index <= files[file_index].end as usize && index >= files[file_index].start as usize {
-            id = files[file_index].id;
-            print!("{id}");
-        } else {
-            print!(".");
-        }
-        index += 1;
-        if index > files[file_index].end as usize {
-            file_index += 1;
-        }
-    }
-    println!()
 }
 
 pub fn part2(input: &str) -> Answer {

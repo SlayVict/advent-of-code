@@ -1,5 +1,3 @@
-use std::{collections::HashSet, hash::Hash, usize};
-
 use crate::utils::{answers::Answer, grid::Grid, point::Point};
 
 fn pave(point: Point, map: &Grid<u8>, met_vec: &mut Vec<Vec<Option<Vec<Point>>>>) -> Vec<Point> {
