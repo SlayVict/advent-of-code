@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::utils::{answers::Answer, parse::ParseOps};
 
-fn count(stone: u128, blinks: u128, cache: &mut HashMap<(u128, u128), u128>) -> u128 {
+fn count(stone: u64, blinks: u64, cache: &mut HashMap<(u64, u64), u64>) -> u64 {
     if blinks == 0 {
         return 1;
     }
@@ -16,7 +16,7 @@ fn count(stone: u128, blinks: u128, cache: &mut HashMap<(u128, u128), u128>) -> 
     } else {
         let digits = stone.ilog10() + 1;
         if digits % 2 == 0 {
-            let power = 10_u128.pow(digits / 2);
+            let power = 10_u64.pow(digits / 2);
             count(stone / power, blinks - 1, cache) + count(stone % power, blinks - 1, cache)
         } else {
             count(stone * 2024, blinks - 1, cache)
@@ -34,8 +34,7 @@ pub fn part1(input: &str) -> Answer {
     stones
         .iter()
         .map(|stone| count(*stone, 25, &mut map))
-        .sum::<u128>()
-        .to_string()
+        .sum::<u64>()
         .into()
 }
 
@@ -46,11 +45,10 @@ pub fn part2(input: &str) -> Answer {
     stones
         .iter()
         .map(|stone| count(*stone, 75, &mut map))
-        .sum::<u128>()
-        .to_string()
+        .sum::<u64>()
         .into()
 }
 
-fn parse(input: &str) -> Vec<u128> {
-    input.iter_unsigned::<u128>().collect()
+fn parse(input: &str) -> Vec<u64> {
+    input.iter_unsigned::<u64>().collect()
 }
