@@ -1,6 +1,10 @@
 use crate::utils::{answers::Answer, grid::Grid, point::Point};
 
-fn pave(point: Point, map: &Grid<u8>, met_vec: &mut Vec<Vec<Option<Vec<Point>>>>) -> Vec<Point> {
+fn pave(
+    point: Point<i32>,
+    map: &Grid<u8>,
+    met_vec: &mut Vec<Vec<Option<Vec<Point<i32>>>>>,
+) -> Vec<Point<i32>> {
     if let Some(met) = met_vec[point.y as usize][point.x as usize].clone() {
         return met;
     }
@@ -33,7 +37,7 @@ fn pave(point: Point, map: &Grid<u8>, met_vec: &mut Vec<Vec<Option<Vec<Point>>>>
 
 pub fn part1(input: &str) -> Answer {
     let map = parse(input);
-    let mut met: Vec<Vec<Option<Vec<Point>>>> =
+    let mut met: Vec<Vec<Option<Vec<Point<i32>>>>> =
         vec![vec![None; map.width as usize]; map.height as usize];
 
     let mut final_score = 0;
@@ -51,7 +55,7 @@ pub fn part1(input: &str) -> Answer {
     final_score.into()
 }
 
-fn score(point: Point, map: &Grid<u8>, scores: &mut Grid<Option<u32>>) -> u32 {
+fn score(point: Point<i32>, map: &Grid<u8>, scores: &mut Grid<Option<u32>>) -> u32 {
     if let Some(score) = scores[point] {
         return score;
     }

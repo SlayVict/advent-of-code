@@ -96,17 +96,17 @@ type Grid = Vec<Vec<Cell>>;
 
 trait GridOps {
     fn copy(&self) -> Self;
-    fn positions(&self, predicate: impl Fn(Cell) -> bool) -> Vec<Point>;
-    fn set(&mut self, _: Point, cell: Cell);
-    fn at(&self, point: Point) -> Option<Cell>;
+    fn positions(&self, predicate: impl Fn(Cell) -> bool) -> Vec<Point<i32>>;
+    fn set(&mut self, _: Point<i32>, cell: Cell);
+    fn at(&self, point: Point<i32>) -> Option<Cell>;
 
-    fn player_position(&self) -> Option<Point>;
+    fn player_position(&self) -> Option<Point<i32>>;
 
     fn count(&self, predicate: impl Fn(Cell) -> bool) -> u32;
 }
 
 impl GridOps for Grid {
-    fn at(&self, Point { x, y }: Point) -> Option<Cell> {
+    fn at(&self, Point { x, y }: Point<i32>) -> Option<Cell> {
         if x < 0 || y < 0 {
             return None;
         }
@@ -114,7 +114,7 @@ impl GridOps for Grid {
         self.get(y).and_then(|row| row.get(x).copied())
     }
 
-    fn set(&mut self, Point { x, y }: Point, cell: Cell) {
+    fn set(&mut self, Point { x, y }: Point<i32>, cell: Cell) {
         if x < 0 || y < 0 {
             return;
         }
@@ -127,7 +127,7 @@ impl GridOps for Grid {
         self.iter().flatten().filter(|f| predicate(**f)).count() as u32
     }
 
-    fn player_position(&self) -> Option<Point> {
+    fn player_position(&self) -> Option<Point<i32>> {
         for y in 0..self.len() {
             for x in 0..self[y].len() {
                 if let Cell::Player(_) = self.at(Point::new(x as i32, y as i32))? {
@@ -138,7 +138,7 @@ impl GridOps for Grid {
         None
     }
 
-    fn positions(&self, predicate: impl Fn(Cell) -> bool) -> Vec<Point> {
+    fn positions(&self, predicate: impl Fn(Cell) -> bool) -> Vec<Point<i32>> {
         let mut positions = Vec::new();
         for y in 0..self.len() {
             for x in 0..self[y].len() {
@@ -157,7 +157,7 @@ impl GridOps for Grid {
     }
 }
 
-impl From<Direction> for Point {
+impl From<Direction> for Point<i32> {
     fn from(d: Direction) -> Self {
         match d {
             Direction::Up => Point::new(0, -1),
@@ -229,7 +229,7 @@ fn calculate_default_path(grid: &Grid) -> Grid {
 
 #[derive(Clone)]
 pub struct Player {
-    position: Option<Point>,
+    position: Option<Point<i32>>,
     direction: Direction,
 }
 

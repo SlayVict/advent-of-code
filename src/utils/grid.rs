@@ -37,7 +37,7 @@ pub struct Grid<T> {
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct GridIter<'a, T> {
     grid: &'a Grid<T>,
-    index: Point,
+    index: Point<i32>,
 }
 
 impl Grid<u8> {
@@ -58,7 +58,7 @@ impl Grid<u8> {
 
 impl<T: Copy + PartialEq> Grid<T> {
     #[inline]
-    pub fn find(&self, needle: T) -> Option<Point> {
+    pub fn find(&self, needle: T) -> Option<Point<i32>> {
         let to_point = |index| {
             let x = (index as i32) % self.width;
             let y = (index as i32) / self.width;
@@ -89,7 +89,7 @@ impl<T> Grid<T> {
     }
 
     #[inline]
-    pub fn contains(&self, point: Point) -> bool {
+    pub fn contains(&self, point: Point<i32>) -> bool {
         point.x >= 0 && point.x < self.width && point.y >= 0 && point.y < self.height
     }
 
@@ -102,24 +102,24 @@ impl<T> Grid<T> {
     }
 }
 
-impl<T> Index<Point> for Grid<T> {
+impl<T> Index<Point<i32>> for Grid<T> {
     type Output = T;
 
     #[inline]
-    fn index(&self, index: Point) -> &Self::Output {
+    fn index(&self, index: Point<i32>) -> &Self::Output {
         &self.bytes[(self.width * index.y + index.x) as usize]
     }
 }
 
-impl<T> IndexMut<Point> for Grid<T> {
+impl<T> IndexMut<Point<i32>> for Grid<T> {
     #[inline]
-    fn index_mut(&mut self, index: Point) -> &mut Self::Output {
+    fn index_mut(&mut self, index: Point<i32>) -> &mut Self::Output {
         &mut self.bytes[(self.width * index.y + index.x) as usize]
     }
 }
 
 impl<'a, T> Iterator for GridIter<'a, T> {
-    type Item = (Point, &'a T);
+    type Item = (Point<i32>, &'a T);
 
     fn next(&mut self) -> Option<Self::Item> {
         if !self.grid.contains(self.index) {

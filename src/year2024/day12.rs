@@ -2,7 +2,7 @@ use crate::utils::{answers::Answer, grid::Grid, point::Point};
 
 #[derive(Debug, Clone)]
 struct Group {
-    plots: Vec<Point>,
+    plots: Vec<Point<i32>>,
 }
 
 impl Group {
@@ -78,10 +78,10 @@ fn populate(
     map: &Grid<u8>,
     group_map: &mut Grid<Option<u32>>,
     group: &mut Vec<Group>,
-    point: Point,
+    point: Point<i32>,
     id: u32,
 ) -> bool {
-    if let Some(group_id) = group_map[point] {
+    if let Some(_) = group_map[point] {
         return false;
     }
     group_map[point] = Some(id);
@@ -102,6 +102,7 @@ fn populate(
     true
 }
 
+#[warn(dead_code)]
 fn print_grid(map: &Grid<Option<u32>>) {
     for y in 0..map.height {
         for x in 0..map.width {

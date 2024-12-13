@@ -50,10 +50,7 @@ pub fn part2(input: &str) -> Answer {
                 let last = nums[nums.len() - 1];
                 let rest = &nums[..nums.len() - 1];
 
-                let round = (1..)
-                    .map(|i| (1..=i).map(|_| 10).product())
-                    .filter(|r| last / r == 0)
-                    .next();
+                let round = (1..).map(|i| 10i64.pow(i)).filter(|r| last / r == 0).next();
 
                 if round.is_some()
                     && target % round.unwrap() == last
