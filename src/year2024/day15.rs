@@ -1,6 +1,9 @@
 use crate::utils::{answers::Answer, direction::Direction, grid::Grid, point::Point};
 
 pub fn part1(input: &str) -> Answer {
+    let (mut map, directions) = parse(input);
+    let mut robot_position = map.find(Cell::Robot);
+
     Answer::InProgress
 }
 
@@ -19,10 +22,10 @@ enum Cell {
 impl From<u8> for Cell {
     fn from(value: u8) -> Self {
         match value {
-            '.' => Self::Empty,
-            '0' => Self::,
-            '#' => Self::Empty,
-            '@' => Self::Empty,
+            b'.' => Self::Empty,
+            b'0' => Self::Crate,
+            b'#' => Self::Wall,
+            b'@' => Self::Robot,
             _ => panic!("Unknown map type"),
         }
     }
