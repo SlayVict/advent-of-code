@@ -89,15 +89,16 @@ pub fn part2(input: &str) -> Answer {
     }
 
     for seconds in 1..30000 {
-        for robot in robots.iter_mut() {
+        for robot in robots.iter() {
             let mut pos = robot.pos;
-            grid[robot.pos] -= 1;
             let vel = robot.vel;
+            pos = pos + vel * (seconds - 1);
+            pos = Point::new(pos.x.rem_euclid(grid.width), pos.y.rem_euclid(grid.height));
+            grid[pos] -= 1;
             pos = pos + vel;
             pos = Point::new(pos.x.rem_euclid(grid.width), pos.y.rem_euclid(grid.height));
 
-            robot.pos = pos;
-            grid[robot.pos] += 1;
+            grid[pos] += 1;
         }
 
         if find_tree(&grid) {
