@@ -1,5 +1,6 @@
 pub mod utils {
     pub mod answers;
+    pub mod direction;
     pub mod grid;
     pub mod integer;
     pub mod iters;
