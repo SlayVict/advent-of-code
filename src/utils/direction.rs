@@ -1,3 +1,5 @@
+use super::point::Point;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     Up,
@@ -25,6 +27,17 @@ impl From<Direction> for char {
             Direction::Right => '>',
             Direction::Down => 'v',
             Direction::Left => '<',
+        }
+    }
+}
+
+impl From<Direction> for Point<i32> {
+    fn from(d: Direction) -> Self {
+        match d {
+            Direction::Up => Point::new(0, -1),
+            Direction::Right => Point::new(1, 0),
+            Direction::Down => Point::new(0, 1),
+            Direction::Left => Point::new(-1, 0),
         }
     }
 }

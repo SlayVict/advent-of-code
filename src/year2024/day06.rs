@@ -126,17 +126,6 @@ impl GridOps for Grid {
     }
 }
 
-impl From<Direction> for Point<i32> {
-    fn from(d: Direction) -> Self {
-        match d {
-            Direction::Up => Point::new(0, -1),
-            Direction::Right => Point::new(1, 0),
-            Direction::Down => Point::new(0, 1),
-            Direction::Left => Point::new(-1, 0),
-        }
-    }
-}
-
 // fn clear_console() {
 //     if cfg!(target_os = "windows") {
 //         Command::new("cmd").args(&["/c", "cls"]).status().unwrap();
