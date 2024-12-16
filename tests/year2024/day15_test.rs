@@ -47,5 +47,20 @@ fn part1_small_test() {
 
 #[test]
 fn part2_test() {
-    assert_eq!(part2(&INPUT_LARGE), 4.into());
+    assert_eq!(part2(&INPUT_LARGE), 9021.into());
 }
+
+// #[test]
+// fn part2_extra_small_test() {
+//     let input: &str = "\
+// ###########
+// #.........#
+// #.........#
+// #@.O.OO..O#
+// #.........#
+// #.........#
+// ###########
+//
+// >>>>>>>>>>>>";
+//     assert_eq!(part2(&input), 999910.into());
+// }
