@@ -42,27 +42,24 @@ pub fn part1(input: &str) -> Answer {
 * *******.....
 */
 
-fn find_tree(grid: &Grid<i32>) -> bool {
-    let points: Vec<_> = (0..=3)
-        .map(|y| ((-y)..=(y)).map(|x| Point::new(x, y)).collect::<Vec<_>>())
-        .flatten()
-        .collect();
-    for x in 3..(grid.width - 3) {
-        for y in 0..(grid.height - 4) {
-            let mut flag = true;
-            let point = Point::new(x, y);
-            for &offset in points.iter() {
-                flag &= grid.contains(point) && grid[point + offset] > 0;
-                if !flag {
-                    break;
-                }
-            }
-            if flag {
-                return true;
-            }
+fn find_tree(grid: &Grid<i32>, robots: &Vec<Robot>) -> bool {
+    let mut quadrants = [0; 4];
+    let middle = Point::new(grid.width / 2, grid.height / 2);
+    for robot in robots.iter() {
+        let pos = robot.pos;
+        if pos.x == middle.x || pos.y == middle.y {
+            continue;
+        }
+        let bools = (pos.x > middle.x, pos.y < middle.y);
+        match bools {
+            (false, false) => quadrants[0] += 1,
+            (true, false) => quadrants[1] += 1,
+            (true, true) => quadrants[2] += 1,
+            (false, true) => quadrants[3] += 1,
         }
     }
-    false
+    let entropy = quadrants.iter().product::<i32>();
+    entropy < 40000000
 }
 
 fn print_grid(grid: &Grid<i32>) {
@@ -89,19 +86,18 @@ pub fn part2(input: &str) -> Answer {
     }
 
     for seconds in 1..30000 {
-        for robot in robots.iter() {
+        for robot in robots.iter_mut() {
             let mut pos = robot.pos;
             let vel = robot.vel;
-            pos = pos + vel * (seconds - 1);
-            pos = Point::new(pos.x.rem_euclid(grid.width), pos.y.rem_euclid(grid.height));
             grid[pos] -= 1;
             pos = pos + vel;
             pos = Point::new(pos.x.rem_euclid(grid.width), pos.y.rem_euclid(grid.height));
 
             grid[pos] += 1;
+            robot.pos = pos;
         }
 
-        if find_tree(&grid) {
+        if find_tree(&grid, &robots) {
             // print_grid(&grid);
             return seconds.into();
         }
