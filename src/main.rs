@@ -59,6 +59,7 @@ fn main() {
         solution!(year2024, day15),
         solution!(year2024, day16),
         solution!(year2024, day17),
+        solution!(year2024, day18),
     ];
 
     for Solution {
