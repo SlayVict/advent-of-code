@@ -5,8 +5,12 @@ use std::{
 };
 
 use crate::utils::{
-    answers::Answer, direction::ORTHOGONAL, grid::Grid, iters::ChunkOps, parse::ParseOps,
-    point::Point,
+    answers::Answer,
+    direction::ORTHOGONAL,
+    grid::Grid,
+    iters::ChunkOps,
+    parse::ParseOps,
+    point::{Point, DIAGONAL},
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -106,70 +110,80 @@ pub fn part1(input: &str) -> Answer {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Cell {
+    Empty,
+    WallUnknown,
+    WallNorth,
+    WallSouth,
+}
+
+fn print_cells(grid: &Grid<Cell>) {
+    for y in 0..grid.height {
+        for x in 0..grid.width {
+            print!("{} ", grid[Point::new(x, y)]);
+        }
+        println!();
+    }
+}
+
+impl Display for Cell {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Cell::Empty => write!(f, "."),
+            Cell::WallUnknown => write!(f, "#"),
+            Cell::WallNorth => write!(f, "^"),
+            Cell::WallSouth => write!(f, "v"),
+        }
+    }
+}
+
 pub fn part2(input: &str) -> Answer {
     let (points, dimensions, count) = parse(input);
-    let mut grid = Grid::new(dimensions.0 as i32, dimensions.1 as i32, Memory::Unknown);
+    let mut grid = Grid::new(dimensions.0 as i32, dimensions.1 as i32, Cell::Empty);
 
-    let mut corupted_count = count;
-    for &ele in points.iter().take(count) {
-        grid[ele] = Memory::Corropted;
-    }
-    let mut last_corrupted: Point<i32>;
-    let mut queue = BinaryHeap::new();
-    loop {
-        queue.clear();
+    let mut todo = VecDeque::new();
+    for (i, point) in points.into_iter().enumerate() {
+        todo.push_back(point);
+        while let Some(point) = todo.pop_front() {
+            let mut cell = match point {
+                Point { x, y: 0 } if x != 0 => Cell::WallNorth,
+                Point { x, y } if x != grid.width - 1 && y == grid.height - 1 => Cell::WallSouth,
+                Point { x: 0, y } if y != 0 => Cell::WallSouth,
+                Point { x, y } if x == grid.width - 1 && y != grid.height - 1 => Cell::WallNorth,
+                _ => Cell::WallUnknown,
+            };
 
-        last_corrupted = points[corupted_count];
-        grid[last_corrupted] = Memory::Corropted;
-        corupted_count += 1;
-
-        for y in 0..grid.height {
-            for x in 0..grid.width {
-                if let Memory::Distance(_) = grid[Point::new(x, y)] {
-                    grid[Point::new(x, y)] = Memory::Unknown;
-                }
-            }
-        }
-
-        queue.push(Reverse(Node {
-            point: Point::new(0, 0),
-            cost: 0,
-        }));
-        grid[Point::new(0, 0)] = Memory::Distance(0);
-
-        while let Some(Reverse(Node { point, cost })) = queue.pop() {
-            for direction in ORTHOGONAL {
-                let next = point + direction.into();
+            for vec in DIAGONAL {
+                let next = point + vec;
                 if !grid.contains(next) {
                     continue;
                 }
-                let next_cost = cost + 1;
-                match grid[next] {
-                    Memory::Unknown => {
-                        grid[next] = Memory::Distance(next_cost);
-                        queue.push(Reverse(Node {
-                            point: next,
-                            cost: next_cost,
-                        }));
+                let next = grid[next];
+                cell = match (cell, next) {
+                    (Cell::WallUnknown, Cell::WallNorth) => Cell::WallNorth,
+                    (Cell::WallUnknown, Cell::WallSouth) => Cell::WallSouth,
+                    (Cell::WallNorth, Cell::WallSouth) => {
+                        return format!("{},{}", point.x, point.y).into()
                     }
-                    Memory::Distance(current) => {
-                        if next_cost < current {
-                            grid[next] = Memory::Distance(next_cost);
-                            queue.push(Reverse(Node {
-                                point: next,
-                                cost: next_cost,
-                            }));
-                        }
+                    (Cell::WallSouth, Cell::WallNorth) => {
+                        return format!("{},{}", point.x, point.y).into()
                     }
-                    Memory::Corropted => (),
+                    _ => cell,
+                };
+            }
+            grid[point] = cell;
+            if cell == Cell::WallNorth || cell == Cell::WallSouth {
+                for vec in DIAGONAL {
+                    if !grid.contains(point + vec) || grid[point + vec] != Cell::WallUnknown {
+                        continue;
+                    }
+                    todo.push_back(point + vec);
                 }
             }
         }
-        let last = grid[Point::new(grid.width - 1, grid.height - 1)];
-        if last == Memory::Unknown {
-            return format!("{},{}", last_corrupted.x, last_corrupted.y).into();
-        }
     }
+    0.into()
 }
 
 fn parse(input: &str) -> (Vec<Point<i32>>, (u32, u32), usize) {

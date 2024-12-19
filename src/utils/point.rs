@@ -148,20 +148,20 @@ where
     }
 }
 
-// pub const ORIGIN: Point<i32> = Point { x: 0, y: 0 };
-// pub const UP: Point<i32> = Point { x: 0, y: -1 };
-// pub const DOWN: Point<i32> = Point { x: 0, y: 1 };
-// pub const LEFT: Point<i32> = Point { x: -1, y: 0 };
-// pub const RIGHT: Point<i32> = Point { x: 1, y: 0 };
+pub const ORIGIN: Point<i32> = Point { x: 0, y: 0 };
+pub const UP: Point<i32> = Point { x: 0, y: -1 };
+pub const DOWN: Point<i32> = Point { x: 0, y: 1 };
+pub const LEFT: Point<i32> = Point { x: -1, y: 0 };
+pub const RIGHT: Point<i32> = Point { x: 1, y: 0 };
 // pub const ORTHOGONAL: [Point<i32>; 4] = [UP, DOWN, LEFT, RIGHT];
-// // Left to right and top to bottom.
-// pub const DIAGONAL: [Point<i32>; 8] = [
-//     Point { x: -1, y: -1 },
-//     UP,
-//     Point { x: 1, y: -1 },
-//     LEFT,
-//     RIGHT,
-//     Point { x: -1, y: 1 },
-//     DOWN,
-//     Point { x: 1, y: 1 },
-// ];
+// Left to right and top to bottom.
+pub const DIAGONAL: [Point<i32>; 8] = [
+    Point { x: -1, y: -1 },
+    UP,
+    Point { x: 1, y: -1 },
+    LEFT,
+    RIGHT,
+    Point { x: -1, y: 1 },
+    DOWN,
+    Point { x: 1, y: 1 },
+];
