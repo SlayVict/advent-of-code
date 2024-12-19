@@ -1,3 +1,4 @@
+use colored::Colorize;
 use std::{
     cmp::Reverse,
     collections::{BinaryHeap, HashSet, VecDeque},
@@ -116,6 +117,7 @@ enum Cell {
     WallUnknown,
     WallNorth,
     WallSouth,
+    WallBreaker,
 }
 
 fn print_cells(grid: &Grid<Cell>) {
@@ -134,6 +136,7 @@ impl Display for Cell {
             Cell::WallUnknown => write!(f, "#"),
             Cell::WallNorth => write!(f, "^"),
             Cell::WallSouth => write!(f, "v"),
+            Cell::WallBreaker => write!(f, "{}", "X".red()),
         }
     }
 }
@@ -164,10 +167,14 @@ pub fn part2(input: &str) -> Answer {
                     (Cell::WallUnknown, Cell::WallNorth) => Cell::WallNorth,
                     (Cell::WallUnknown, Cell::WallSouth) => Cell::WallSouth,
                     (Cell::WallNorth, Cell::WallSouth) => {
-                        return format!("{},{}", point.x, point.y).into()
+                        // grid[point] = Cell::WallBreaker;
+                        // print_cells(&grid);
+                        return format!("{},{}", point.x, point.y).into();
                     }
                     (Cell::WallSouth, Cell::WallNorth) => {
-                        return format!("{},{}", point.x, point.y).into()
+                        // grid[point] = Cell::WallBreaker;
+                        // print_cells(&grid);
+                        return format!("{},{}", point.x, point.y).into();
                     }
                     _ => cell,
                 };
