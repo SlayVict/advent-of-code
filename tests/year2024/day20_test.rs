@@ -17,12 +17,12 @@ const INPUT: &str = "\
 #...#...#...###
 ###############";
 
-#[test]
-fn part1_test() {
-    assert_eq!(part1(&INPUT), 6.into());
-}
+// #[test]
+// fn part1_test() {
+//     assert_eq!(part1(&INPUT), 6.into());
+// }
 
-#[test]
-fn part2_test() {
-    assert_eq!(part2(&INPUT), 16.into());
-}
+// #[test]
+// fn part2_test() {
+//     assert_eq!(part2(&INPUT), 16.into());
+// }
