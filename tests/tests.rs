@@ -20,4 +20,5 @@ mod year2024 {
     mod day19_test;
     mod day20_test;
     mod day21_test;
+    mod day23_test;
 }
