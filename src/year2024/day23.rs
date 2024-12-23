@@ -9,11 +9,11 @@ pub fn part1(input: &str) -> Answer {
 
     let mut groups = Vec::new();
     for (index, &&historian) in historians.iter().enumerate() {
-        for i in 0..map[historian].len() {
-            let teammate1 = map[historian][i];
-            for j in i + 1..map[historian].len() {
-                let teammate2 = map[historian][j];
-                if map[teammate1].contains(&teammate2) {
+        for i in 0..map[historian].1.len() {
+            let teammate1 = map[historian].1[i];
+            for j in i + 1..map[historian].1.len() {
+                let teammate2 = map[historian].1[j];
+                if map[teammate1].1.contains(&teammate2) {
                     if teammate1.starts_with("t") {
                         if index < historians.iter().position(|&&h| h == teammate1).unwrap() {
                             continue;
@@ -40,50 +40,45 @@ pub fn part1(input: &str) -> Answer {
 pub fn part2(input: &str) -> Answer {
     let map = parse(input);
 
-    let mut groups = Vec::new();
+    let mut lan = Vec::new();
 
-    for (&pc1, connected) in map.iter() {
+    for (i, &pc1) in map.keys().enumerate() {
         let mut group = Vec::new();
 
         let mut queue = vec![pc1];
         while let Some(pc) = queue.pop() {
-            let connections = &map[pc];
+            let (j, connections) = &map[pc];
             if group.iter().all(|p| connections.contains(p)) {
                 group.push(pc);
                 queue.extend(connections);
             }
         }
-        groups.push(group);
+
+        if group.len() > lan.len() {
+            lan = group;
+        }
     }
 
-    // for group in groups.iter() {
-    //     println!("{:?}", group);
-    // }
-
-    let max_len = groups.iter().map(|g| g.len()).max().unwrap();
-    let mut biggest = groups
-        .iter()
-        .filter(|g| g.len() == max_len)
-        .collect::<Vec<_>>();
-
-    let mut sorted = biggest[0].clone();
-    sorted.sort();
-    sorted.join(",").into()
+    lan.sort();
+    lan.join(",").into()
 }
 
-fn parse(input: &str) -> HashMap<&str, Vec<&str>> {
+fn parse(input: &str) -> HashMap<&str, (usize, Vec<&str>)> {
     let mut map = HashMap::new();
 
+    let mut len: usize;
     for line in input.lines() {
         let (a, b) = line.split_once('-').unwrap();
-        let mut entry = map.entry(a).or_insert(Vec::new());
-        if !entry.contains(&b) {
-            entry.push(b);
+        len = map.len();
+        let mut entry = map.entry(a).or_insert((len, Vec::new()));
+        if !entry.1.contains(&b) {
+            entry.1.push(b);
         }
 
-        entry = map.entry(b).or_insert(Vec::new());
-        if !entry.contains(&a) {
-            entry.push(a);
+        len = map.len();
+        entry = map.entry(b).or_insert((len, Vec::new()));
+        if !entry.1.contains(&a) {
+            entry.1.push(a);
         }
     }
 
