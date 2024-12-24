@@ -1,315 +1,196 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, io::Read};
 
 use crate::utils::answers::Answer;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
-struct LogicGraph {
-    gates: Vec<Gate>,
-    lines: HashMap<[u8; 3], usize>,
-}
-
-impl LogicGraph {
-    fn new() -> Self {
-        Self {
-            gates: Vec::new(),
-            lines: HashMap::new(),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-enum Operation {
+#[derive(Clone, Copy, Debug)]
+enum GateOperator {
     And,
     Or,
     Xor,
-    Nop,
 }
 
-impl Operation {
-    fn calculate(&self, mut left: bool, mut right: bool) -> Option<bool> {
-        Some(match self {
-            Operation::And => left && right,
-            Operation::Or => left || right,
-            Operation::Xor => left != right,
-            Operation::Nop => return None,
-        })
-    }
+#[derive(Clone, Copy, Debug)]
+enum Gate<'a> {
+    Binary(GateOperator, [&'a str; 2], Option<bool>),
+    Value(bool),
 }
 
-impl TryFrom<&str> for Operation {
-    type Error = String;
-
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
-        Ok(match value {
-            "AND" => Self::And,
-            "OR" => Self::Or,
-            "XOR" => Self::Xor,
-            _ => return Err(format!("'{value}' not a valid boolean operation")),
-        })
-    }
-}
-
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
-struct Gate {
-    operation: Operation,
-    inputs: Option<[[u8; 3]; 2]>,
-    value: Option<bool>,
-    out: [u8; 3],
-}
-
-impl Gate {
-    fn value(&self, graph: &mut LogicGraph) -> bool {
-        if let Some(value) = self.value {
-            return value;
+fn evaluate_gate(output: &str, gates: &mut HashMap<&str, Gate>) -> bool {
+    match gates.get(output) {
+        None => panic!("Gate not found"),
+        Some(&Gate::Value(val)) => val,
+        Some(&Gate::Binary(_, _, Some(val))) => val,
+        Some(&Gate::Binary(operator, [a, b], None)) => {
+            let a_val = evaluate_gate(a, gates);
+            let b_val = evaluate_gate(b, gates);
+            let result = match operator {
+                GateOperator::And => a_val & b_val,
+                GateOperator::Or => a_val | b_val,
+                GateOperator::Xor => a_val ^ b_val,
+            };
+            *gates.get_mut(output).unwrap() = Gate::Binary(operator, [a, b], Some(result));
+            result
         }
-
-        let [left, right] = self.inputs.expect("either value or inputs should be set");
-        let left = graph.gates[graph.lines[&left]];
-        let right = graph.gates[graph.lines[&right]];
-        self.operation
-            .calculate(left.value(graph), right.value(graph))
-            .unwrap()
     }
 }
 
 pub fn part1(input: &str) -> Answer {
-    let mut graph = parse(input);
-    let mut answer = 0;
+    let mut lines = input.lines();
+    let mut gates = HashMap::new();
 
-    let mut key = [b'z', 0, 0];
-    for i in 0.. {
-        key[1] = i / 10 + b'0';
-        key[2] = i % 10 + b'0';
-
-        let Some(&line) = graph.lines.get(&key) else {
-            break;
-        };
-        let gate = graph.gates[line];
-        let value = gate.value(&mut graph) as u64;
-        answer = (value << i) | answer;
-    }
-    answer.into()
-}
-
-pub fn check_default_result_binary(input: &str) {
-    let mut graph = parse(input);
-    let mut answer = 0;
-
-    let mut key = [b'z', 0, 0];
-    for i in 0.. {
-        key[1] = i / 10 + b'0';
-        key[2] = i % 10 + b'0';
-
-        let Some(&line) = graph.lines.get(&key) else {
-            break;
-        };
-        let gate = graph.gates[line];
-        let value = gate.value(&mut graph) as u64;
-        answer = (value << i) | answer;
-    }
-    key = [b'x', 0, 0];
-    let mut a = 0;
-    for i in 0.. {
-        key[1] = i / 10 + b'0';
-        key[2] = i % 10 + b'0';
-
-        let Some(&line) = graph.lines.get(&key) else {
-            break;
-        };
-        let gate = graph.gates[line];
-        let value = gate.value(&mut graph) as u64;
-        a = (value << i) | a;
+    for line in lines.by_ref().take_while(|line| !line.is_empty()) {
+        let mut parts = line.split_ascii_whitespace();
+        let output = parts.next().unwrap().trim_end_matches(':');
+        let value = parts.next().unwrap() == "1";
+        gates.insert(output, Gate::Value(value));
     }
 
-    key = [b'y', 0, 0];
-    let mut b = 0;
-    for i in 0.. {
-        key[1] = i / 10 + b'0';
-        key[2] = i % 10 + b'0';
-
-        let Some(&line) = graph.lines.get(&key) else {
-            break;
-        };
-        let gate = graph.gates[line];
-        let value = gate.value(&mut graph) as u64;
-        b = (value << i) | b;
+    for line in lines {
+        let mut parts = line.split_ascii_whitespace();
+        let a = parts.next().unwrap();
+        let operator = parts.next().unwrap();
+        let b = parts.next().unwrap();
+        let output = parts.nth(1).unwrap();
+        gates.insert(
+            output,
+            Gate::Binary(
+                match operator {
+                    "AND" => GateOperator::And,
+                    "OR" => GateOperator::Or,
+                    "XOR" => GateOperator::Xor,
+                    _ => panic!("Unknown gate type"),
+                },
+                [a, b],
+                None,
+            ),
+        );
     }
 
-    let expect = a + b;
-    println!("{a:046b}");
-    println!("{b:046b}");
-    println!("{answer:046b}");
-    println!("{expect:046b}");
-}
-
-fn find_rule(
-    graph: &mut LogicGraph,
-    wire1: [u8; 3],
-    wire2: [u8; 3],
-    operation: Operation,
-) -> Option<(usize, Gate)> {
-    for (i, &gate) in graph.gates.iter().enumerate() {
-        let Some(inputs) = gate.inputs else {
-            continue;
-        };
-        if gate.operation == operation && inputs.contains(&wire1) && inputs.contains(&wire2) {
-            return Some((i, gate));
-        }
-    }
-    None
-}
-
-fn swap(
-    graph: &mut LogicGraph,
-    wire1: [u8; 3],
-    wire2: [u8; 3],
-    operation: Operation,
-    swaps: &mut Vec<[u8; 3]>,
-) {
-    swaps.extend([wire1, wire2].iter().copied());
-    let wire1 = graph.lines[&wire1];
-    let wire2 = graph.lines[&wire2];
-    (graph.gates[wire1], graph.gates[wire2]) = (graph.gates[wire2], graph.gates[wire1]);
+    let mut z_gates: Vec<_> = gates
+        .keys()
+        .filter(|&name| name.starts_with('z'))
+        .copied()
+        .collect();
+    z_gates.sort_unstable();
+    z_gates
+        .into_iter()
+        .rev()
+        .fold(0, |acc, name| {
+            (acc << 1) | evaluate_gate(name, &mut gates) as u64
+        })
+        .into()
 }
 
 pub fn part2(input: &str) -> Answer {
-    let mut graph = parse(input);
+    let mut lines = input.lines();
+    let mut gates = HashMap::new();
+    let mut outputs_by_input = HashMap::new();
 
-    let mut gate_and = vec![None; 46];
-    let mut gate_xor = vec![None; 46];
-    let mut gate_z = vec![None; 46];
-    let mut gate_tmp = vec![None; 46];
-    let mut gate_carry = vec![None; 46];
+    for line in lines.by_ref().take_while(|line| !line.is_empty()) {
+        let mut parts = line.split_ascii_whitespace();
+        let name = parts.next().unwrap().trim_end_matches(':');
+        let value = parts.next().unwrap() == "1";
+        gates.insert(name, Gate::Value(value));
+    }
 
-    let mut swaps = Vec::new();
+    for line in lines {
+        let mut parts = line.split_ascii_whitespace();
+        let a = parts.next().unwrap();
+        let operator = parts.next().unwrap();
+        let b = parts.next().unwrap();
+        let output = parts.nth(1).unwrap();
+        gates.insert(
+            output,
+            Gate::Binary(
+                match operator {
+                    "AND" => GateOperator::And,
+                    "OR" => GateOperator::Or,
+                    "XOR" => GateOperator::Xor,
+                    _ => panic!("Unknown gate type"),
+                },
+                [a, b],
+                None,
+            ),
+        );
+        outputs_by_input
+            .entry(a)
+            .or_insert_with(Vec::new)
+            .push(output);
+        outputs_by_input
+            .entry(b)
+            .or_insert_with(Vec::new)
+            .push(output);
+    }
 
-    let mut i = 0;
-    let mut x = [b'x', b'0', b'0'];
-    let mut y = [b'y', b'0', b'0'];
-    let mut z = [b'z', b'0', b'0'];
+    let max_z = gates
+        .keys()
+        .copied()
+        .filter(|&name| name.starts_with('z'))
+        .max()
+        .unwrap();
 
-    gate_and[i] = find_rule(&mut graph, x, y, Operation::And);
-    gate_xor[i] = find_rule(&mut graph, x, y, Operation::Xor);
-    gate_z[i] = gate_xor[i];
-    gate_carry[i] = gate_and[i];
-
-    for i in 1..46 {
-        (x[1], x[2]) = (i as u8 / 10 + b'0', i as u8 % 10 + b'0');
-        (y[1], y[2]) = (i as u8 / 10 + b'0', i as u8 % 10 + b'0');
-        (z[1], z[2]) = (i as u8 / 10 + b'0', i as u8 % 10 + b'0');
-        let mut check = true;
-        while check {
-            check = false;
-
-            gate_and[i] = find_rule(&mut graph, x, y, Operation::And);
-            gate_xor[i] = find_rule(&mut graph, x, y, Operation::Xor);
-            let gate = graph.lines[&z];
-            let gate = graph.gates[gate];
-
-            let Some([left, right]) = gate.inputs else {
-                continue;
-            };
-
-            if let Some((carry_gate_index, carry_gate)) = gate_carry[i - 1] {
-                if left == carry_gate.out
-                    && (gate_xor[i].is_none() || right != gate_xor[i].unwrap().1.out)
-                {
-                    let operation = gate.operation;
-                    swap(&mut graph, left, right, operation, &mut swaps);
-                    check = true;
-                    continue;
-                }
-                if right == carry_gate.out
-                    && (gate_xor[i].is_none() || left != gate_xor[i].unwrap().1.out)
-                {
-                    let operation = gate.operation;
-                    swap(&mut graph, left, right, operation, &mut swaps);
-                    check = true;
-                    continue;
-                }
-            }
-
-            match (gate_xor[i], gate_carry[i - 1], gate_and[i]) {
-                (
-                    Some((xor_gate_index, xor_gate)),
-                    Some((carry_gate_index, carry_gate)),
-                    Some((and_gate_index, and_gate)),
-                ) => {
-                    gate_z[i] = find_rule(&mut graph, xor_gate.out, carry_gate.out, Operation::Xor);
-                    if gate_z[i].unwrap().1.out != z {
-                        swap(
-                            &mut graph,
-                            gate_z[i].unwrap().1.out,
-                            z,
-                            Operation::Xor,
-                            &mut swaps,
-                        );
-                        check = true;
-                        continue;
+    let mut wrong_type: Vec<_> = gates
+        .iter()
+        .filter(|&(&output, &gate)| match gate {
+            Gate::Value(_) => false,
+            Gate::Binary(GateOperator::Xor, [a, _], _) => {
+                if a.starts_with(['x', 'y']) && !["x00", "y00"].contains(&a) {
+                    if let Some(downstream) = outputs_by_input.get(output) {
+                        downstream.len() != 2
+                            || !downstream
+                                .iter()
+                                .any(|&x| matches!(gates[x], Gate::Binary(GateOperator::Xor, _, _)))
+                            || !downstream
+                                .iter()
+                                .any(|&x| matches!(gates[x], Gate::Binary(GateOperator::And, _, _)))
+                    } else {
+                        true
                     }
-                    gate_tmp[i] =
-                        find_rule(&mut graph, xor_gate.out, carry_gate.out, Operation::And);
-                    gate_carry[i] = find_rule(
-                        &mut graph,
-                        gate_tmp[i].unwrap().1.out,
-                        and_gate.out,
-                        Operation::Or,
-                    );
+                } else {
+                    !output.starts_with('z')
                 }
-                _ => {}
             }
-        }
-    }
 
-    Answer::InProgress
-}
+            Gate::Binary(GateOperator::Or, _, _) => {
+                if let Some(downstream) = outputs_by_input.get(output) {
+                    downstream.len() != 2
+                        || !downstream
+                            .iter()
+                            .any(|&x| matches!(gates[x], Gate::Binary(GateOperator::Xor, _, _)))
+                        || !downstream
+                            .iter()
+                            .any(|&x| matches!(gates[x], Gate::Binary(GateOperator::And, _, _)))
+                } else {
+                    output != max_z
+                }
+            }
 
-fn to_arr<const N: usize>(input: &str) -> [u8; N] {
-    let mut array = [0; N];
-    for (i, c) in input.bytes().enumerate() {
-        array[i] = c;
-    }
-    array
-}
+            Gate::Binary(GateOperator::And, [a, _], _) => {
+                if ["x00", "y00"].contains(&a) {
+                    if let Some(downstream) = outputs_by_input.get(output) {
+                        downstream.len() != 2
+                            || !downstream
+                                .iter()
+                                .any(|&x| matches!(gates[x], Gate::Binary(GateOperator::Xor, _, _)))
+                            || !downstream
+                                .iter()
+                                .any(|&x| matches!(gates[x], Gate::Binary(GateOperator::And, _, _)))
+                    } else {
+                        true
+                    }
+                } else {
+                    if let Some(downstream) = outputs_by_input.get(output) {
+                        downstream.len() != 1
+                            || !matches!(gates[downstream[0]], Gate::Binary(GateOperator::Or, _, _))
+                    } else {
+                        true
+                    }
+                }
+            }
+        })
+        .map(|(&output, _)| output)
+        .collect();
 
-fn parse(input: &str) -> LogicGraph {
-    let mut graph = LogicGraph::new();
-
-    let (prefix, suffix) = input.split_once("\n\n").unwrap();
-
-    for line in prefix.lines() {
-        let name: [u8; 3] = to_arr::<3>(&line[0..3]);
-        let value = Some(if line.bytes().nth(5).unwrap() == b'0' {
-            false
-        } else {
-            true
-        });
-        graph.lines.insert(name, graph.gates.len());
-        graph.gates.push(Gate {
-            operation: Operation::Nop,
-            inputs: None,
-            value,
-            out: name,
-        });
-    }
-
-    for line in suffix.lines() {
-        // println!("{line}");
-        let split = line.split_whitespace().collect::<Vec<_>>();
-        let left = to_arr::<3>(split[0]);
-        let operation = Operation::try_from(split[1]).unwrap();
-        let right = to_arr::<3>(split[2]);
-        let name = to_arr::<3>(split[4]);
-
-        let value = None;
-        graph.lines.insert(name, graph.gates.len());
-        graph.gates.push(Gate {
-            operation,
-            inputs: Some([left, right]),
-            value,
-            out: name,
-        });
-    }
-
-    graph
+    wrong_type.sort();
+    wrong_type.join(",").into()
 }
