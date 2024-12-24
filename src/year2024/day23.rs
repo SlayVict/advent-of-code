@@ -50,7 +50,11 @@ pub fn part2(input: &str) -> Answer {
             let (j, connections) = &map[pc];
             if group.iter().all(|p| connections.contains(p)) {
                 group.push(pc);
-                queue.extend(connections);
+                let extension: Vec<_> = connections
+                    .iter()
+                    .filter(|c| !group.contains(c) && !queue.contains(c))
+                    .collect();
+                queue.extend(extension);
             }
         }
 
