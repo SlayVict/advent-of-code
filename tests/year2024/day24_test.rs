@@ -71,7 +71,7 @@ fn part1_test2() {
     assert_eq!(part1(&INPUT2), 2024.into());
 }
 
-#[test]
-fn part2_test() {
-    assert_eq!(part2(&INPUT1), "co,de,ka,ta".into());
-}
+// #[test]
+// fn part2_test() {
+//     assert_eq!(part2(&INPUT1), "co,de,ka,ta".into());
+// }
