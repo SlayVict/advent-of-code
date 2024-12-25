@@ -17,7 +17,7 @@ pub fn part1(input: &str) -> Answer {
 }
 
 pub fn part2(input: &str) -> Answer {
-    Answer::InProgress
+    "Yippie".into()
 }
 
 fn parse(input: &str) -> (Vec<[usize; 5]>, Vec<[usize; 5]>) {

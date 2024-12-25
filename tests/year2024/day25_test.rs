@@ -45,8 +45,3 @@ const INPUT: &str = "\
 fn part1_test() {
     assert_eq!(part1(&INPUT), 3.into());
 }
-
-#[test]
-fn part2_test() {
-    assert_eq!(part2(&INPUT), "co,de,ka,ta".into());
-}
