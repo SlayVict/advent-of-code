@@ -42,31 +42,7 @@ macro_rules! solution {
 
 fn main() {
     let solutions = vec![
-        solution!(year2024, day01),
-        solution!(year2024, day02),
-        solution!(year2024, day03),
-        solution!(year2024, day04),
-        solution!(year2024, day05),
-        solution!(year2024, day06),
-        solution!(year2024, day07),
-        solution!(year2024, day08),
-        solution!(year2024, day09),
-        solution!(year2024, day10),
-        solution!(year2024, day11),
-        solution!(year2024, day12),
-        solution!(year2024, day13),
-        solution!(year2024, day14),
-        solution!(year2024, day15),
-        solution!(year2024, day16),
-        solution!(year2024, day17),
-        solution!(year2024, day18),
-        solution!(year2024, day19),
-        solution!(year2024, day20),
-        solution!(year2024, day21),
-        solution!(year2024, day22),
-        solution!(year2024, day23),
-        solution!(year2024, day24),
-        solution!(year2024, day25),
+        solution!(year2025, day01),
     ];
 
     for Solution {
