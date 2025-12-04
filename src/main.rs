@@ -43,6 +43,10 @@ macro_rules! solution {
 fn main() {
     let solutions = vec![
         solution!(year2025, day01),
+        solution!(year2025, day02),
+        solution!(year2025, day03),
+        // solution!(year2025, day04),
+        // solution!(year2025, day05),
     ];
 
     for Solution {
