@@ -45,7 +45,7 @@ fn main() {
         solution!(year2025, day01),
         solution!(year2025, day02),
         solution!(year2025, day03),
-        // solution!(year2025, day04),
+        solution!(year2025, day04),
         // solution!(year2025, day05),
     ];
 
