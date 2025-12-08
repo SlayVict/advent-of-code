@@ -102,23 +102,6 @@ fn populate(
     true
 }
 
-#[warn(dead_code)]
-fn print_grid(map: &Grid<Option<u32>>) {
-    for y in 0..map.height {
-        for x in 0..map.width {
-            let point = Point::new(x, y);
-            let c = if map[point].is_none() {
-                "x"
-            } else {
-                &format!("{}", map[point].unwrap())
-            };
-            print!("{c} ");
-        }
-        println!();
-    }
-    println!();
-}
-
 pub fn part1(input: &str) -> Answer {
     let input = parse(input);
     let mut groups: Vec<Group> = Vec::new();

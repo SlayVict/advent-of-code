@@ -136,3 +136,18 @@ impl<'a, T> Iterator for GridIter<'a, T> {
         ret
     }
 }
+
+pub fn print_grid<T>(map: &Grid<T>)
+where
+    T: std::fmt::Display,
+{
+    for y in 0..map.height {
+        for x in 0..map.width {
+            let point = Point::new(x, y);
+            let c = &format!("{}", map[point]);
+            print!("{c} ");
+        }
+        println!();
+    }
+    println!();
+}
