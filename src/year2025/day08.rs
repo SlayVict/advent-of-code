@@ -96,7 +96,24 @@ pub fn part1_sizeble(input: &str, limit: usize) -> Answer {
 }
 
 pub fn part2(input: &str) -> Answer {
-    Answer::InProgress
+    let graph = parse(input);
+
+    let mut set: Vec<Node> = (0..graph.nodes.len())
+        .map(|i| Node { parent: i, size: 1 })
+        .collect();
+
+    for edge in (&graph.edges).iter() {
+        if graph.find(&mut set, edge.from) == graph.find(&mut set, edge.to) {
+            continue;
+        }
+
+        let len = graph.union(&mut set, edge.from, edge.to);
+        if len == graph.nodes.len() {
+            return (graph.nodes[edge.from].x * graph.nodes[edge.to].x).into();
+        }
+    }
+
+    0.into()
 }
 
 fn parse(input: &str) -> Graph {

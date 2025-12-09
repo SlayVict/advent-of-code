@@ -30,5 +30,5 @@ fn part1_test() {
 
 #[test]
 fn part2_test() {
-    assert_eq!(part2(&INPUT), 123930.into());
+    assert_eq!(part2(&INPUT), 25272.into());
 }
