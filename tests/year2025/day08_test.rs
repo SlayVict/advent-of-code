@@ -20,7 +20,8 @@ const INPUT: &str = "\
 941,993,340
 862,61,35
 984,92,344
-425,690,689";
+425,690,689
+";
 
 #[test]
 fn part1_test() {
@@ -29,5 +30,5 @@ fn part1_test() {
 
 #[test]
 fn part2_test() {
-    assert_eq!(part2(&INPUT), 40.into());
+    assert_eq!(part2(&INPUT), 123930.into());
 }

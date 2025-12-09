@@ -4,13 +4,13 @@ use crate::utils::{answers::Answer, iters::ChunkOps, parse::ParseOps};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Vector3d {
-    x: u64,
-    y: u64,
-    z: u64,
+    x: usize,
+    y: usize,
+    z: usize,
 }
 
 impl Vector3d {
-    fn distance(&self, other: &Self) -> u64 {
+    fn distance(&self, other: &Self) -> usize {
         let dx = self.x.abs_diff(other.x);
         let dy = self.y.abs_diff(other.y);
         let dz = self.z.abs_diff(other.z);
@@ -19,10 +19,16 @@ impl Vector3d {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+struct Node {
+    parent: usize,
+    size: usize,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Edge {
     from: usize,
     to: usize,
-    weight: u64,
+    weight: usize,
 }
 
 #[derive(Debug)]
@@ -36,49 +42,30 @@ impl Graph {
         Self { nodes, edges }
     }
 
-    fn find(&self, parent: &[usize], i: usize) -> usize {
-        if parent[i] == i {
-            i
-        } else {
-            self.find(parent, parent[i])
+    fn find(&self, set: &mut [Node], mut x: usize) -> usize {
+        while set[x].parent != x {
+            let parent = set[x].parent;
+            (x, set[x].parent) = (parent, set[parent].parent);
         }
+
+        x
     }
 
-    fn union(
-        &self,
-        parent: &mut [usize],
-        rank: &mut [usize],
-        size: &mut [usize],
-        x: usize,
-        y: usize,
-    ) -> usize {
-        let root_x = self.find(parent, x);
-        let root_y = self.find(parent, y);
+    fn union(&self, set: &mut [Node], mut x: usize, mut y: usize) -> usize {
+        x = self.find(set, x);
+        y = self.find(set, y);
 
-        let size_x = size[root_x];
-        let size_y = size[root_y];
+        if x != y {
+            if set[x].size < set[y].size {
+                (x, y) = (y, x);
+            }
 
-        // if root_x != root_y {
-        if rank[root_x] < rank[root_y] {
-            parent[root_x] = root_y;
-            size[root_y] += size_x;
-            size[root_x] = 0;
-            y
-        } else if rank[root_x] > rank[root_y] {
-            parent[root_y] = root_x;
-            size[root_x] += size_y;
-            size[root_y] = 0;
-            x
-        } else {
-            parent[root_y] = root_x;
-            rank[root_x] += 1;
-            size[root_x] += size_y;
-            size[root_y] = 0;
-            x
+            set[y].parent = x;
+            set[x].size += set[y].size;
+            set[y].size = 0;
         }
-        // } else {
-        //     root_x
-        // }
+
+        set[x].size
     }
 }
 
@@ -86,67 +73,26 @@ pub fn part1(input: &str) -> Answer {
     part1_sizeble(input, 1000)
 }
 
-pub fn part1_sizeble(input: &str, connection_count: usize) -> Answer {
+pub fn part1_sizeble(input: &str, limit: usize) -> Answer {
     let graph = parse(input);
-    let mut result = Vec::new();
 
-    let mut parent: Vec<usize> = (0..graph.nodes.len()).collect();
-    let mut rank: Vec<usize> = vec![0; graph.nodes.len()];
-    let mut size: Vec<usize> = vec![1; graph.nodes.len()];
+    let mut set: Vec<Node> = (0..graph.nodes.len())
+        .map(|i| Node { parent: i, size: 1 })
+        .collect();
 
-    for (i, edge) in (&graph.edges).iter().enumerate() {
-        if graph.find(&parent, edge.from) != graph.find(&parent, edge.to) {
-            let xy = graph.union(&mut parent, &mut rank, &mut size, edge.from, edge.to);
-            result.push((xy, edge));
-            if result.len() >= connection_count {
-                break;
-            }
+    for (i, edge) in (&graph.edges).iter().enumerate().take(limit) {
+        if graph.find(&mut set, edge.from) != graph.find(&mut set, edge.to) {
+            graph.union(&mut set, edge.from, edge.to);
         }
     }
 
-    for (xy, edge) in &result {
-        println!(
-            "{:?} {:?} {:?}",
-            edge, graph.nodes[edge.from], graph.nodes[edge.to]
-        );
-    }
-
-    for (xy, edge) in &result {
-        print!("{:>3}", graph.find(&parent, *xy));
-    }
-    println!();
-
-    for i in 0..20 {
-        print!("{:>3}", i);
-    }
-    println!();
-
-    for i in 0..20 {
-        print!("{:>3}", graph.find(&parent, i));
-    }
-    println!();
-
-    for i in size {
-        print!("{:>3}", i);
-    }
-    println!();
-
-    // let mut map = HashMap::new();
-    // for (root, _) in result {
-    //     map.entry(root).and_modify(|v| *v += 1).or_insert(1);
-    // }
-
-    // let mut map: Vec<_> = map.into_iter().map(|(_, item)| item).collect();
-    // map.sort_unstable();
-    // // println!("{:?}", map);
-    // map.iter()
-    //     .rev()
-    //     .take(3)
-    //     .map(|&x| x + 1)
-    //     .product::<u64>()
-    //     .into()
-
-    Answer::InProgress
+    set.sort_unstable_by_key(|node| node.size);
+    set.iter()
+        .rev()
+        .take(3)
+        .map(|node| node.size)
+        .product::<usize>()
+        .into()
 }
 
 pub fn part2(input: &str) -> Answer {
@@ -155,7 +101,7 @@ pub fn part2(input: &str) -> Answer {
 
 fn parse(input: &str) -> Graph {
     let nodes: Vec<_> = input
-        .iter_unsigned()
+        .iter_unsigned::<usize>()
         .chunk::<3>()
         .map(|chunk| Vector3d {
             x: chunk[0],
@@ -164,23 +110,19 @@ fn parse(input: &str) -> Graph {
         })
         .collect();
 
-    let mut edges: Vec<_> = nodes
-        .iter()
-        .enumerate()
-        .flat_map(|(i, node)| {
-            nodes
-                .iter()
-                .enumerate()
-                .skip(i + 1)
-                .map(move |(j, other)| Edge {
-                    from: i,
-                    to: j,
-                    weight: node.distance(other),
-                })
-        })
-        .collect();
+    let mut edges: Vec<_> = Vec::new();
 
-    edges.sort_by_key(|edge| edge.weight);
+    for (i, node) in nodes.iter().enumerate() {
+        for (j, other) in nodes.iter().enumerate().skip(i + 1) {
+            edges.push(Edge {
+                from: i,
+                to: j,
+                weight: node.distance(other),
+            });
+        }
+    }
+
+    edges.sort_unstable_by_key(|edge| edge.weight);
 
     Graph::new(nodes, edges)
 }
