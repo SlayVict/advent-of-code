@@ -1,3 +1,4 @@
+use microlp::{LinearExpr, OptimizationDirection, Problem};
 use std::usize;
 
 use crate::utils::{answers::Answer, parse::ParseOps};
@@ -6,7 +7,7 @@ use crate::utils::{answers::Answer, parse::ParseOps};
 struct Machine {
     leds: usize,
     btns: Vec<usize>,
-    joltage: Vec<usize>,
+    jolts: Vec<usize>,
 }
 
 pub fn part1(input: &str) -> Answer {
@@ -39,7 +40,36 @@ pub fn part1(input: &str) -> Answer {
 }
 
 pub fn part2(input: &str) -> Answer {
-    Answer::InProgress
+    let machines = parse(input);
+
+    let a: usize = machines
+        .iter()
+        .map(|machine| {
+            let mut problem = Problem::new(OptimizationDirection::Minimize);
+            let max = machine.jolts.iter().copied().max().unwrap();
+            let vars = (0..machine.btns.len())
+                .map(|_| problem.add_integer_var(1.0, (0, max as i32)))
+                .collect::<Vec<_>>();
+            for (i, &n) in machine.jolts.iter().enumerate() {
+                problem.add_constraint(
+                    machine
+                        .btns
+                        .iter()
+                        .zip(&vars)
+                        .filter(|&(mask, _)| mask & (1 << i) != 0)
+                        .fold(LinearExpr::empty(), |mut ex, (_, &var)| {
+                            ex.add(var, 1.0);
+                            ex
+                        }),
+                    microlp::ComparisonOp::Eq,
+                    n as f64,
+                );
+            }
+            problem.solve().unwrap().objective().round() as usize
+        })
+        .sum();
+
+    a.into()
 }
 
 fn parse(input: &str) -> Vec<Machine> {
@@ -63,7 +93,7 @@ fn parse(input: &str) -> Vec<Machine> {
             Machine {
                 leds,
                 btns: buttons,
-                joltage,
+                jolts: joltage,
             }
         })
         .collect()
