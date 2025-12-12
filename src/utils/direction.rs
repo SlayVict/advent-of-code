@@ -62,6 +62,18 @@ impl From<Direction> for Point<i32> {
     }
 }
 
+impl From<Point<i32>> for Direction {
+    fn from(p: Point<i32>) -> Self {
+        match p {
+            Point { x, y } if x == 0 && y < 0 => Self::Up,
+            Point { x, y } if x == 0 && y > 0 => Self::Down,
+            Point { x, y } if x > 0 && y == 0 => Self::Right,
+            Point { x, y } if x < 0 && y == 0 => Self::Left,
+            p => panic!("Unkown direction point {p:?}"),
+        }
+    }
+}
+
 pub const ORTHOGONAL: [Direction; 4] = [
     Direction::Up,
     Direction::Right,
